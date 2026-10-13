@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero"><p class="eyebrow">Keep the surprise. Skip the duplicates.</p><h1>Wish lists without duplicate gifts.</h1><a class="button" href="{% url 'wishes:create_list' %}">Create a wish list</a></section>
+<section><h2>Your demo lists</h2><div class="grid">{% for list in lists %}<a class="card" href="{% url 'wishes:list_detail' list.pk %}"><strong>{{ list.title }}</strong><span>{{ list.recipient_name }} · {{ list.items.count }} items</span></a>{% empty %}<p>No lists yet. Create the first one.</p>{% endfor %}</div></section>
+{% endblock %}
