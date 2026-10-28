@@ -1,3 +1,6 @@
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -10,6 +13,16 @@ def home(request):
     return render(request, "wishes/home.html", {"lists": lists})
 
 
+def signup(request):
+    form = UserCreationForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        login(request, user)
+        return redirect("wishes:home")
+    return render(request, "registration/signup.html", {"form": form})
+
+
+@login_required
 def create_list(request):
     form = WishListForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -23,6 +36,7 @@ def list_detail(request, pk):
     return render(request, "wishes/list_detail.html", {"wish_list": wish_list, "form": WishItemForm()})
 
 
+@login_required
 @require_POST
 def add_item(request, pk):
     wish_list = get_object_or_404(WishList, pk=pk)

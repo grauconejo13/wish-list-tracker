@@ -8,7 +8,21 @@
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body>
-<header><a href="/">Wish List Tracker</a></header>
+<header>
+  <a href="/">Wish List Tracker</a>
+  <nav aria-label="Account">
+    {% if user.is_authenticated %}
+      <span>Hi, {{ user.username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}">Log in</a>
+      <a href="{% url 'wishes:signup' %}">Sign up</a>
+    {% endif %}
+  </nav>
+</header>
 <main>{% block content %}{% endblock %}</main>
 </body>
 </html>

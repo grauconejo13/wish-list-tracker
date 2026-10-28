@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Sign up | Wish List Tracker{% endblock %}
+{% block content %}
+<section>
+  <p class="eyebrow">Start a list</p>
+  <h1>Create an account</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="button" type="submit">Sign up</button>
+  </form>
+</section>
+{% endblock %}
