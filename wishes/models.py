@@ -1,7 +1,15 @@
+from django.conf import settings
 from django.db import models
 
 
 class WishList(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="wish_lists",
+        null=True,
+        blank=True,
+    )
     title = models.CharField(max_length=120)
     recipient_name = models.CharField(max_length=100)
     occasion = models.CharField(max_length=80, blank=True)

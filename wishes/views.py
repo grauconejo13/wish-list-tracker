@@ -26,20 +26,27 @@ def signup(request):
 def create_list(request):
     form = WishListForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        wish_list = form.save()
+        wish_list = form.save(commit=False)
+        wish_list.owner = request.user
+        wish_list.save()
         return redirect("wishes:list_detail", pk=wish_list.pk)
     return render(request, "wishes/list_form.html", {"form": form})
 
 
 def list_detail(request, pk):
     wish_list = get_object_or_404(WishList.objects.prefetch_related("items"), pk=pk)
-    return render(request, "wishes/list_detail.html", {"wish_list": wish_list, "form": WishItemForm()})
+    can_manage = request.user.is_authenticated and wish_list.owner_id == request.user.id
+    return render(
+        request,
+        "wishes/list_detail.html",
+        {"wish_list": wish_list, "form": WishItemForm(), "can_manage": can_manage},
+    )
 
 
 @login_required
 @require_POST
 def add_item(request, pk):
-    wish_list = get_object_or_404(WishList, pk=pk)
+    wish_list = get_object_or_404(WishList, pk=pk, owner=request.user)
     form = WishItemForm(request.POST)
     if form.is_valid():
         item = form.save(commit=False)

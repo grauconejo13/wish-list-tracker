@@ -1,2 +1,33 @@
 {% extends "base.html" %}
-{% block content %}<section><p class="eyebrow">{{ wish_list.occasion|default:"Wish list" }}</p><h1>{{ wish_list.title }}</h1><p>For {{ wish_list.recipient_name }}</p></section><section class="two-col"><div><h2>Items</h2><div id="items">{% for item in wish_list.items.all %}{% include "wishes/partials/item.html" %}{% empty %}<p>No wishes yet.</p>{% endfor %}</div></div><aside><h2>Add a wish</h2><form hx-post="{% url 'wishes:add_item' wish_list.pk %}" hx-target="#items" hx-swap="beforeend" method="post">{% csrf_token %}{{ form.as_p }}<button class="button">Add item</button></form></aside></section>{% endblock %}
+{% block content %}
+<section>
+  <p class="eyebrow">{{ wish_list.occasion|default:"Wish list" }}</p>
+  <h1>{{ wish_list.title }}</h1>
+  <p>For {{ wish_list.recipient_name }}</p>
+</section>
+<section class="two-col">
+  <div>
+    <h2>Items</h2>
+    <div id="items">
+      {% for item in wish_list.items.all %}
+        {% include "wishes/partials/item.html" %}
+      {% empty %}
+        <p>No wishes yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <aside>
+    {% if can_manage %}
+      <h2>Add a wish</h2>
+      <form hx-post="{% url 'wishes:add_item' wish_list.pk %}" hx-target="#items" hx-swap="beforeend" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button">Add item</button>
+      </form>
+    {% else %}
+      <h2>Shopping view</h2>
+      <p>You can browse and claim gifts here. Only the list owner can add wishes.</p>
+    {% endif %}
+  </aside>
+</section>
+{% endblock %}

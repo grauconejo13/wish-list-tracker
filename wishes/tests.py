@@ -13,8 +13,8 @@ class WishListFlowTests(TestCase):
             f"{reverse('login')}?next={reverse('wishes:create_list')}",
         )
 
-    def test_authenticated_user_can_create_list(self):
-        User.objects.create_user(username="sam", password="safe-test-password")
+    def test_authenticated_user_owns_created_list(self):
+        user = User.objects.create_user(username="sam", password="safe-test-password")
         self.client.login(username="sam", password="safe-test-password")
         response = self.client.post(reverse("wishes:create_list"), {
             "title": "Christmas 2026",
@@ -22,7 +22,36 @@ class WishListFlowTests(TestCase):
             "occasion": "Christmas",
         })
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(WishList.objects.filter(title="Christmas 2026").exists())
+        wish_list = WishList.objects.get(title="Christmas 2026")
+        self.assertEqual(wish_list.owner, user)
+
+    def test_non_owner_cannot_add_item(self):
+        owner = User.objects.create_user(username="owner", password="safe-test-password")
+        shopper = User.objects.create_user(username="shopper", password="safe-test-password")
+        wish_list = WishList.objects.create(owner=owner, title="Birthday", recipient_name="Owner")
+        self.client.login(username="shopper", password="safe-test-password")
+        response = self.client.post(
+            reverse("wishes:add_item", args=[wish_list.pk]),
+            {"name": "Book", "url": "", "price": "", "notes": ""},
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(WishItem.objects.filter(wish_list=wish_list).exists())
+
+    def test_owner_sees_add_item_form(self):
+        owner = User.objects.create_user(username="owner", password="safe-test-password")
+        wish_list = WishList.objects.create(owner=owner, title="Birthday", recipient_name="Owner")
+        self.client.login(username="owner", password="safe-test-password")
+        response = self.client.get(reverse("wishes:list_detail", args=[wish_list.pk]))
+        self.assertContains(response, "Add a wish")
+
+    def test_shopper_sees_shopping_view(self):
+        owner = User.objects.create_user(username="owner", password="safe-test-password")
+        shopper = User.objects.create_user(username="shopper", password="safe-test-password")
+        wish_list = WishList.objects.create(owner=owner, title="Birthday", recipient_name="Owner")
+        self.client.login(username="shopper", password="safe-test-password")
+        response = self.client.get(reverse("wishes:list_detail", args=[wish_list.pk]))
+        self.assertContains(response, "Shopping view")
+        self.assertNotContains(response, "Add a wish")
 
     def test_signup_logs_user_in(self):
         response = self.client.post(reverse("wishes:signup"), {
